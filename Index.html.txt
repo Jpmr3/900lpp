@@ -1,0 +1,221 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>The Touch Level — Tienda rápida</title>
+<meta name="description" content="The Touch Level — Productos digitales low-cost listos para entregar. Compra rápida con PayPal o transferencia (solicitud).">
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+<style>
+:root{--bg:#07121a;--card:#0f1720;--muted:#9fb0c8;--accent:#57a0ff;--accent2:#7D61FF}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto;background:linear-gradient(180deg,#041025,#07121a);color:#e8f3ff}
+.wrap{max-width:1100px;margin:20px auto;padding:18px}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03)}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#001}
+nav{display:flex;gap:8px;align-items:center}
+.btn{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 12px;border-radius:8px;color:var(--muted);cursor:pointer}
+.btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent2));border:0;color:#022;font-weight:700}
+.hero{padding:22px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));margin-top:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:14px}
+.card{background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+.price{font-weight:800;color:var(--accent);font-size:1.1rem}
+.muted{color:var(--muted)}
+.small{font-size:.95rem;color:var(--muted)}
+.footer{margin-top:24px;text-align:center;color:var(--muted);font-size:.9rem}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#0b1220;padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);z-index:999;max-width:520px;width:94%;display:none}
+.modal.open{display:block}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.input{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+.notice{background:rgba(255,255,255,0.02);padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.02);font-size:.95rem;margin-top:8px}
+.badge{background:rgba(255,255,255,0.02);padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);font-weight:700}
+.download-link{display:inline-block;margin-top:10px;padding:8px 12px;border-radius:8px;background:#2fca6f;color:#021;font-weight:800;text-decoration:none}
+.admin-link{font-size:.9rem;color:var(--muted);cursor:pointer;text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo">TL</div>
+      <div>
+        <div style="font-weight:800">The Touch Level</div>
+        <div class="small">Tienda rápida — Productos digitales low-cost</div>
+      </div>
+    </div>
+    <nav>
+      <div class="small" id="visits">Visitas: 0</div>
+      <button class="btn" id="btnAdmin">Admin</button>
+    </nav>
+  </header>
+  <section class="hero">
+    <h2 style="margin:0">Micro-productos que se venden hoy</h2>
+    <p class="muted" style="margin-top:8px">Paquetes cortos, accionables y listos para entregar. Compra en 2 clics y recibe un enlace de descarga instantáneo tras confirmar pago.</p>
+  </section>
+  <section>
+    <h3 style="margin:0 0 8px">Productos económicos — venta rápida</h3>
+    <div class="grid" id="products"></div>
+  </section>
+  <section style="margin-top:18px">
+    <div class="card">
+      <h4>Cómo funciona (rápido)</h4>
+      <ol class="small" style="margin:8px 0 0;padding-left:18px">
+        <li>Elige un producto y pulsa "Pagar".</li>
+        <li>Se abrirá PayPal (o el enlace de tarjeta si está configurado).</li>
+        <li>Tras completar el pago, vuelve y pulsa "Confirmar pago" para recibir el enlace de descarga (simulación si no se integra el webhook de pago).</li>
+      </ol>
+      <div class="notice">Nota: para pagos reales integra PayPal/Paddle/Stripe. Aquí hay una experiencia simplificada que libera el archivo tras confirmación manual/automática.</div>
+    </div>
+  </section>
+  <div style="display:flex;gap:12px;margin-top:14px;align-items:center">
+    <div class="badge">PayPal: https://paypal.me/nostrodamus777</div>
+    <div class="badge">Transfer: ES36••••••••••••5511</div>
+  </div>
+  <div class="footer">¿Quieres más productos o describir alguno en detalle? Pide y lo agrego.</div>
+</div>
+<!-- Modal de checkout simplificado -->
+<div id="modal" class="modal" role="dialog" aria-modal="true">
+  <div id="modalContent"></div>
+  <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+    <button class="btn" id="closeModal">Cerrar</button>
+  </div>
+</div>
+<!-- Admin modal (configuración simple) -->
+<div id="adminModal" class="modal" aria-hidden="true">
+  <h3>Admin — configuración</h3>
+  <div style="margin-top:8px">
+    <label class="small">PayPal base</label>
+    <input id="adminPaypal" class="input" placeholder="https://paypal.me/tuusuario" />
+    <label class="small" style="margin-top:8px">Enlace pago tarjeta (opcional)</label>
+    <input id="adminBankLink" class="input" placeholder="https://paylink.tubanco/..." />
+    <label class="small" style="margin-top:8px">IBAN completo (oculto a usuarios)</label>
+    <input id="adminIban" class="input" placeholder="ES3615860001410334845511" />
+    <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn primary" id="saveAdmin">Guardar</button>
+      <button class="btn" id="closeAdmin">Cerrar</button>
+    </div>
+    <div id="adminMsg" class="small" style="margin-top:8px;color:var(--muted)"></div>
+  </div>
+</div>
+<script>
+// ====== Datos y productos generados (low-price, trending) ======
+const PRODUCTS = [
+  { id:'p1', title:'Micro-Pack: 5 Emails de Venta', price_eur:7, desc:'Secuencia corta de 5 emails listos para enviar. Alta tasa de apertura.' },
+  { id:'p2', title:'Kit Social: 10 Creatividades 1080', price_eur:9, desc:'10 imágenes y copies listos para Instagram/LinkedIn.' },
+  { id:'p3', title:'Cold Script: 3 Plantillas DM', price_eur:5, desc:'Mensajes cortos para outreach en 3 plataformas.' },
+  { id:'p4', title:'Landing Mini (HTML)', price_eur:12, desc:'Landing one-page editable, optimizada para conversiones.' },
+  { id:'p5', title:'Prompt Pack IA — 20 prompts', price_eur:8, desc:'Prompts optimizados para generar copy y anuncios.' },
+  { id:'p6', title:'Mini Audit: 1-page SEO review', price_eur:15, desc:'Revisión rápida SEO + lista de acciones prioritarias.' }
+];
+// ====== Estado y storage ======
+const STORE_KEY = 'ttl_gumroad_lite';
+let db = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+db.settings = db.settings || { paypal: 'https://paypal.me/nostrodamus777', bankLink:'', ibanMasked:'ES36••••••••••••5511', ibanFull:'ES3615860001410334845511' };
+db.sales = db.sales || []; // records simulated
+localStorage.setItem(STORE_KEY, JSON.stringify(db));
+// ====== Utilidades ======
+const $ = sel => document.querySelector(sel);
+function formatPrice(eur){ return `€${eur.toFixed(2)}` }
+function showModal(html){ const m = $('#modal'); $('#modalContent').innerHTML = html; m.classList.add('open'); }
+function closeModal(){ $('#modal').classList.remove('open'); $('#modalContent').innerHTML=''; }
+function openAdmin(){ const am = document.getElementById('adminModal'); am.classList.add('open'); document.getElementById('adminPaypal').value = db.settings.paypal; document.getElementById('adminBankLink').value = db.settings.bankLink; document.getElementById('adminIban').value = db.settings.ibanFull; }
+function closeAdmin(){ document.getElementById('adminModal').classList.remove('open'); }
+// ====== Render productos ======
+function renderProducts(){
+  const wrap = document.getElementById('products');
+  wrap.innerHTML='';
+  PRODUCTS.forEach(p=>{
+    const div = document.createElement('div'); div.className='card';
+    div.innerHTML = `<h4 style="margin:6px 0">${p.title}</h4>
+      <p class="small">${p.desc}</p>
+      <div style="margin-top:8px" class="row"><div class="price">${formatPrice(p.price_eur)}</div></div>
+      <div class="btns" style="margin-top:12px">
+        <a class="btn primary" target="_blank" href="${db.settings.paypal}/${p.price_eur}" onclick="trackOpen('${p.id}')">Pagar con PayPal</a>
+        <button class="btn" onclick="startCheckout('${p.id}')">Comprar (modal)</button>
+      </div>`;
+    wrap.appendChild(div);
+  });
+}
+// ====== Checkout "Gumroad-lite" ======
+function startCheckout(productId){
+  const product = PRODUCTS.find(x=>x.id===productId);
+  if(!product) return;
+  const html = `<h3>Comprar — ${escapeHtml(product.title)}</h3>
+    <p class="small">${escapeHtml(product.desc)}</p>
+    <p style="margin-top:8px"><strong>Precio:</strong> ${formatPrice(product.price_eur)}</p>
+    <div style="margin-top:10px">
+      <label class="small">Tu nombre</label><input id="chkName" class="input" placeholder="Nombre completo" />
+      <label class="small" style="margin-top:8px">Email</label><input id="chkEmail" class="input" placeholder="tu@correo.com" />
+    </div>
+    <div style="margin-top:12px" class="row">
+      <a class="btn primary" href="${db.settings.paypal}/${product.price_eur}" target="_blank" onclick="trackOpen('${product.id}')">Pagar por PayPal</a>
+      <button class="btn" onclick="simulatePaid('${product.id}')">Marcar como pagado (simulación)</button>
+      <button class="btn" onclick="requestTransferFor('${product.id}')">Solicitar Transfer</button>
+    </div>
+    <div class="notice" style="margin-top:10px">Después de pagar en PayPal, vuelve y pulsa <strong>Marcar como pagado</strong> para descargar el archivo. Para pagos reales automatizados, conecta webhooks (p. ej. PayPal IPN/Orders API).</div>`;
+  showModal(html);
+}
+// simulate marking paid -> generate downloadable stub
+function simulatePaid(productId){
+  const name = document.getElementById('chkName').value.trim();
+  const email = document.getElementById('chkEmail').value.trim();
+  if(!email) return alert('Introduce email para recibir el enlace de descarga');
+  const product = PRODUCTS.find(x=>x.id===productId);
+  // record sale (simulated)
+  const sale = { id:'s'+Date.now(), productId, email, name, ts:new Date().toISOString(), price:product.price_eur };
+  db.sales.push(sale); localStorage.setItem(STORE_KEY, JSON.stringify(db));
+  // create stub file
+  const txt = `Gracias por comprar ${product.title}\\n\\nDetalles:\\n- Producto: ${product.title}\\n- Precio: ${formatPrice(product.price_eur)}\\n- Comprador: ${name || email}\\n- Fecha: ${new Date().toLocaleString()}\\n\\nInstrucciones: este es un stub — reemplaza con el entregable real.`;
+  const blob = new Blob([txt], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const html = `<h3>Compra confirmada — ${escapeHtml(product.title)}</h3><p class="small">Gracias — tu compra se ha registrado (sim). Pulsa para descargar tu entregable.</p><a class="download-link" href="${url}" download="${product.id}.txt">Descargar entregable</a>`;
+  showModal(html);
+}
+// request transfer workflow (user asks for bank details; admin approves later)
+function requestTransferFor(productId){
+  const name = document.getElementById('chkName') ? document.getElementById('chkName').value.trim() : prompt('Nombre para la solicitud');
+  const email = document.getElementById('chkEmail') ? document.getElementById('chkEmail').value.trim() : prompt('Email para confirmación');
+  if(!email) return alert('Email necesario');
+  const req = { id:'r'+Date.now(), type:'transfer', productId, name, email, ts:new Date().toISOString(), status:'pending' };
+  db.requests = db.requests || []; db.requests.push(req); localStorage.setItem(STORE_KEY, JSON.stringify(db));
+  closeModal();
+  alert('Solicitud enviada. El admin revisará y facilitará los datos bancarios si procede.');
+}
+// ====== Helpers ======
+function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function trackOpen(id){ db.metrics = db.metrics || {views:0,clicks:0}; db.metrics.clicks = (db.metrics.clicks||0)+1; localStorage.setItem(STORE_KEY, JSON.stringify(db)); }
+// ====== Admin actions ======
+document.getElementById('btnAdmin').addEventListener('click', ()=>{ openAdmin(); });
+document.getElementById('closeAdmin').addEventListener('click', ()=>{ closeAdmin(); });
+document.getElementById('closeModal').addEventListener('click', ()=>{ closeModal(); });
+document.getElementById('saveAdmin').addEventListener('click', ()=>{ 
+  db.settings.paypal = document.getElementById('adminPaypal').value.trim() || db.settings.paypal;
+  db.settings.bankLink = document.getElementById('adminBankLink').value.trim() || db.settings.bankLink;
+  db.settings.ibanFull = document.getElementById('adminIban').value.trim() || db.settings.ibanFull;
+  db.settings.ibanMasked = db.settings.ibanFull ? (db.settings.ibanFull.slice(0,4) + '••••••••••••' + db.settings.ibanFull.slice(-4)) : db.settings.ibanMasked;
+  localStorage.setItem(STORE_KEY, JSON.stringify(db));
+  document.getElementById('adminMsg').textContent = 'Guardado';
+  renderProducts();
+});
+// ====== Init ======
+function renderProducts(){ renderProducts = null; renderProductsImpl(); }
+function renderProductsImpl(){
+  const visits = (db.metrics && db.metrics.visits) ? db.metrics.visits : 0;
+  db.metrics = db.metrics || {}; db.metrics.visits = visits + 1; localStorage.setItem(STORE_KEY, JSON.stringify(db));
+  document.getElementById('visits').textContent = 'Visitas: ' + db.metrics.visits;
+  // render product cards
+  const wrap = document.getElementById('products'); wrap.innerHTML = '';
+  PRODUCTS.forEach(p=>{
+    const div = document.createElement('div'); div.className='card';
+    div.innerHTML = `<h4 style="margin:6px 0">${p.title}</h4>
+      <p class="small">${p.desc}</p>
+      <div style="margin-top:8px" class="row"><div class="price">${formatPrice(p.price_eur)}</div></div>
+      <div class="btns" style="margin-top:12px"><a class="btn primary" target="_blank" href="${db.settings.paypal}/${p.price_eur}" onclick="trackOpen('${p.id}')">Pagar con PayPal</a><button class="btn" onclick="startCheckout('${p.id}')">Comprar (modal)</button></div>`;
+    wrap.appendChild(div);
+  });
+}
+renderProductsImpl();
+</script>
+</body>
+</html>
+
